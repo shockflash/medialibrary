@@ -24,6 +24,8 @@ from feincms.templatetags import feincms_thumbnail
 from feincms.translations import TranslatedObjectMixin, Translation, \
     TranslatedObjectManager
 
+from thumbs.models import ImageWithThumbsField
+
 import re
 import os
 import logging
@@ -92,14 +94,16 @@ class MediaFileBase(Base, TranslatedObjectMixin):
                                     'django.core.files.storage.FileSystemStorage')
     default_storage = get_callable(default_storage_class)
 
-    fs = default_storage(location=settings.FEINCMS_MEDIALIBRARY_ROOT,
-                           base_url=settings.FEINCMS_MEDIALIBRARY_URL)
+    fs = default_storage(location = settings.FEINCMS_MEDIALIBRARY_ROOT,
+                           base_url = settings.FEINCMS_MEDIALIBRARY_URL)
 
-    file = models.FileField(_('file'), max_length=255, upload_to=settings.FEINCMS_MEDIALIBRARY_UPLOAD_TO, storage=fs)
-    type = models.CharField(_('file type'), max_length=12, editable=False, choices=())
-    created = models.DateTimeField(_('created'), editable=False, default=datetime.now)
-    copyright = models.CharField(_('copyright'), max_length=200, blank=True)
-    file_size  = models.IntegerField(_("file size"), blank=True, null=True, editable=False)
+    sizes = getattr(django_settings, 'MEDIALIBRARY_IMAGESIZES', ())
+
+    file = ImageWithThumbsField(_('file'), sizes = sizes, max_length = 255, upload_to = settings.FEINCMS_MEDIALIBRARY_UPLOAD_TO, storage = fs)
+    type = models.CharField(_('file type'), max_length = 12, editable = False, choices = ())
+    created = models.DateTimeField(_('created'), editable = False, default = datetime.now)
+    copyright = models.CharField(_('copyright'), max_length = 200, blank = True)
+    file_size = models.IntegerField(_("file size"), blank = True, null = True, editable = False)
 
     categories = models.ManyToManyField(Category, verbose_name=_('categories'),
                                         blank=True, null=True)
@@ -280,6 +284,10 @@ class MediaFileBase(Base, TranslatedObjectMixin):
 MediaFileBase.register_filetypes(
         # Should we be using imghdr.what instead of extension guessing?
         ('image', _('Image'), lambda f: re.compile(r'\.(bmp|jpe?g|jp2|jxr|gif|png|tiff?)$', re.IGNORECASE).search(f)),
+        ('other', _('Binary'), lambda f: True), # Must be last
+    )
+
+"""
         ('video', _('Video'), lambda f: re.compile(r'\.(mov|m[14]v|mp4|avi|mpe?g|qt|ogv|wmv)$', re.IGNORECASE).search(f)),
         ('audio', _('Audio'), lambda f: re.compile(r'\.(au|mp3|m4a|wma|oga|ram|wav)$', re.IGNORECASE).search(f)),
         ('pdf', _('PDF document'), lambda f: f.lower().endswith('.pdf')),
@@ -289,9 +297,8 @@ MediaFileBase.register_filetypes(
         ('zip', _('Zip archive'), lambda f: f.lower().endswith('.zip')),
         ('doc', _('Microsoft Word'), lambda f: re.compile(r'\.docx?$', re.IGNORECASE).search(f)),
         ('xls', _('Microsoft Excel'), lambda f: re.compile(r'\.xlsx?$', re.IGNORECASE).search(f)),
-        ('ppt', _('Microsoft PowerPoint'), lambda f: re.compile(r'\.pptx?$', re.IGNORECASE).search(f)),
-        ('other', _('Binary'), lambda f: True), # Must be last
-    )
+        ('ppt', _('Microsoft PowerPoint'), lambda f: re.compile(r'\.pptx?$', re.IGNORECASE).search(f)),        
+"""
 
 # ------------------------------------------------------------------------
 class MediaFile(MediaFileBase):
