@@ -47,12 +47,12 @@ class Category(models.Model):
     library.
     """
 
-    title = models.CharField(_('title'), max_length=200)
-    parent = models.ForeignKey('self', blank=True, null=True,
-        related_name='children', limit_choices_to={'parent__isnull': True},
-        verbose_name=_('parent'))
+    title = models.CharField(_('title'), max_length = 200)
+    parent = models.ForeignKey('self', blank = True, null = True,
+        related_name = 'children', limit_choices_to = {'parent__isnull': True},
+        verbose_name = _('parent'))
 
-    slug = models.SlugField(_('slug'), max_length=150)
+    slug = models.SlugField(_('slug'), max_length = 150)
 
     class Meta:
         ordering = ['parent__title', 'title']
@@ -75,10 +75,10 @@ class Category(models.Model):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display      = ['parent', 'title']
-    list_filter       = ['parent']
-    list_per_page     = 25
-    search_fields     = ['title']
+    list_display = ['parent', 'title']
+    list_filter = ['parent']
+    list_per_page = 25
+    search_fields = ['title']
     prepopulated_fields = { 'slug': ('title',), }
 
 
@@ -105,8 +105,8 @@ class MediaFileBase(Base, TranslatedObjectMixin):
     copyright = models.CharField(_('copyright'), max_length = 200, blank = True)
     file_size = models.IntegerField(_("file size"), blank = True, null = True, editable = False)
 
-    categories = models.ManyToManyField(Category, verbose_name=_('categories'),
-                                        blank=True, null=True)
+    categories = models.ManyToManyField(Category, verbose_name = _('categories'),
+                                        blank = True, null = True)
     categories.category_filter = True
 
     class Meta:
@@ -130,7 +130,7 @@ class MediaFileBase(Base, TranslatedObjectMixin):
     formatted_created.admin_order_field = 'created'
 
     @classmethod
-    def reconfigure(cls, upload_to=None, storage=None):
+    def reconfigure(cls, upload_to = None, storage = None):
         f = cls._meta.get_field('file')
         # Ugh. Copied relevant parts from django/db/models/fields/files.py
         # FileField.__init__ (around line 225)
@@ -181,7 +181,7 @@ class MediaFileBase(Base, TranslatedObjectMixin):
             try:
                 from django.core.files.images import get_image_dimensions
                 d = get_image_dimensions(self.file.file)
-                if d: t += "<br/>%d&times;%d" % ( d[0], d[1] )
+                if d: t += "<br/>%d&times;%d" % (d[0], d[1])
             except IOError, e:
                 t += "<br/>(%s)" % e.strerror
         return t
@@ -202,7 +202,7 @@ class MediaFileBase(Base, TranslatedObjectMixin):
         return u'<input type="hidden" class="medialibrary_file_path" name="_media_path_%d" value="%s" /> %s' % (
                 self.id,
                 self.file.name,
-                shorten_string(basename(self.file.name), max_length=28), )
+                shorten_string(basename(self.file.name), max_length = 28),)
     file_info.short_description = _('file info')
     file_info.allow_tags = True
 
@@ -267,6 +267,7 @@ class MediaFileBase(Base, TranslatedObjectMixin):
                         if rotation:
                             image = image.rotate(rotation)
                             image.save(self.file.path)
+
             except (OSError, IOError), e:
                 self.type = self.determine_file_type('***') # It's binary something
 
@@ -313,8 +314,8 @@ class MediaFileTranslation(Translation(MediaFile)):
     Translated media file caption and description.
     """
 
-    caption = models.CharField(_('caption'), max_length=200)
-    description = models.TextField(_('description'), blank=True)
+    caption = models.CharField(_('caption'), max_length = 200)
+    description = models.TextField(_('description'), blank = True)
 
     class Meta:
         verbose_name = _('media file translation')
@@ -325,7 +326,7 @@ class MediaFileTranslation(Translation(MediaFile)):
 
 #-------------------------------------------------------------------------
 class MediaFileTranslationInline(admin.StackedInline):
-    model   = MediaFileTranslation
+    model = MediaFileTranslation
     max_num = len(django_settings.LANGUAGES)
 
 
@@ -343,19 +344,19 @@ def admin_thumbnail(obj):
                     <img src="%(image)s" alt="" />
                 </a>""" % {
                     'url': obj.file.url,
-                    'image': image,})
+                    'image': image, })
     return ''
 admin_thumbnail.short_description = _('Preview')
 admin_thumbnail.allow_tags = True
 
 #-------------------------------------------------------------------------
 class MediaFileAdmin(admin.ModelAdmin):
-    date_hierarchy    = 'created'
-    inlines           = [MediaFileTranslationInline]
-    list_display      = ['__unicode__', admin_thumbnail, 'file_type', 'copyright', 'file_info', 'formatted_file_size', 'formatted_created']
-    list_filter       = ['type', 'categories']
-    list_per_page     = 25
-    search_fields     = ['copyright', 'file', 'translations__caption']
+    date_hierarchy = 'created'
+    inlines = [MediaFileTranslationInline]
+    list_display = ['__unicode__', admin_thumbnail, 'file_type', 'copyright', 'file_info', 'formatted_file_size', 'formatted_created']
+    list_filter = ['type', 'categories']
+    list_per_page = 25
+    search_fields = ['copyright', 'file', 'translations__caption']
     filter_horizontal = ("categories",)
 
     def get_urls(self):
@@ -363,16 +364,16 @@ class MediaFileAdmin(admin.ModelAdmin):
 
         urls = super(MediaFileAdmin, self).get_urls()
         my_urls = patterns('',
-            url(r'^mediafile-bulk-upload/$', self.admin_site.admin_view(MediaFileAdmin.bulk_upload), {}, name='mediafile_bulk_upload')
+            url(r'^mediafile-bulk-upload/$', self.admin_site.admin_view(MediaFileAdmin.bulk_upload), {}, name = 'mediafile_bulk_upload')
             )
 
         return my_urls + urls
 
-    def changelist_view(self, request, extra_context=None):
+    def changelist_view(self, request, extra_context = None):
         if extra_context is None:
             extra_context = {}
         extra_context['categories'] = Category.objects.all()
-        return super(MediaFileAdmin, self).changelist_view(request, extra_context=extra_context)
+        return super(MediaFileAdmin, self).changelist_view(request, extra_context = extra_context)
 
     @staticmethod
     # 1.2 @csrf_protect
@@ -387,7 +388,7 @@ class MediaFileAdmin(admin.ModelAdmin):
 
             category = None
             if category_id:
-                category = Category.objects.get(pk=int(category_id))
+                category = Category.objects.get(pk = int(category_id))
 
             try:
                 z = zipfile.ZipFile(data)
