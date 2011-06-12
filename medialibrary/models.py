@@ -207,19 +207,6 @@ class MediaFileBase(Base, TranslatedObjectMixin):
     file_info.allow_tags = True
 
     def determine_file_type(self, name):
-        """
-        >>> t = MediaFileBase()
-        >>> t.determine_file_type('foobar.jpg')
-        'image'
-        >>> t.determine_file_type('foobar.PDF')
-        'pdf'
-        >>> t.determine_file_type('foobar.jpg.pdf')
-        'pdf'
-        >>> t.determine_file_type('foobar.jgp')
-        'other'
-        >>> t.determine_file_type('foobar-jpg')
-        'other'
-        """
         for type_key, type_name, type_test in self.filetypes:
             if type_test(name):
                 return type_key
