@@ -41,6 +41,30 @@ class CategoryManager(models.Manager):
         return super(CategoryManager, self).get_query_set().select_related("parent")
 
 # ------------------------------------------------------------------------
+class Licence(models.Model):
+    """
+    These Licence are for the images
+    """
+
+    title = models.CharField(_('title'), max_length = 200)
+    code = models.CharField(max_length = 200)
+    url = models.CharField(max_length = 200)
+
+    class Meta:
+        ordering = ['title']
+        verbose_name = _('licence')
+        verbose_name_plural = _('licences')
+
+    def __unicode__(self):
+        return self.title
+
+
+class LicenceAdmin(admin.ModelAdmin):
+    list_display = ['title', 'code', 'url']
+    list_per_page = 25
+    search_fields = ['title']
+
+# ------------------------------------------------------------------------
 class Category(models.Model):
     """
     These categories are meant primarily for organizing media files in the
@@ -108,6 +132,9 @@ class MediaFileBase(Base, TranslatedObjectMixin):
     categories = models.ManyToManyField(Category, verbose_name = _('categories'),
                                         blank = True, null = True)
     categories.category_filter = True
+
+    licence = models.ForeignKey(Licence, null=True)
+    source_url = models.CharField(max_length=400, blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -285,7 +312,7 @@ MediaFileBase.register_filetypes(
         ('zip', _('Zip archive'), lambda f: f.lower().endswith('.zip')),
         ('doc', _('Microsoft Word'), lambda f: re.compile(r'\.docx?$', re.IGNORECASE).search(f)),
         ('xls', _('Microsoft Excel'), lambda f: re.compile(r'\.xlsx?$', re.IGNORECASE).search(f)),
-        ('ppt', _('Microsoft PowerPoint'), lambda f: re.compile(r'\.pptx?$', re.IGNORECASE).search(f)),        
+        ('ppt', _('Microsoft PowerPoint'), lambda f: re.compile(r'\.pptx?$', re.IGNORECASE).search(f)),
 """
 
 # ------------------------------------------------------------------------
@@ -340,8 +367,8 @@ admin_thumbnail.allow_tags = True
 class MediaFileAdmin(admin.ModelAdmin):
     date_hierarchy = 'created'
     inlines = [MediaFileTranslationInline]
-    list_display = ['__unicode__', admin_thumbnail, 'file_type', 'copyright', 'file_info', 'formatted_file_size', 'formatted_created']
-    list_filter = ['type', 'categories']
+    list_display = ['__unicode__', admin_thumbnail, 'file_type', 'licence', 'copyright', 'file_info', 'formatted_file_size', 'formatted_created']
+    list_filter = ['type', 'categories', 'licence']
     list_per_page = 25
     search_fields = ['copyright', 'file', 'translations__caption']
     filter_horizontal = ("categories",)
@@ -443,4 +470,3 @@ class MediaFileAdmin(admin.ModelAdmin):
 
 
 #-------------------------------------------------------------------------
-
