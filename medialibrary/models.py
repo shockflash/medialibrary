@@ -233,6 +233,9 @@ class MediaFileBase(Base, TranslatedObjectMixin):
     file_info.short_description = _('file info')
     file_info.allow_tags = True
 
+    def copyright_text(self):
+        return '%s, (c) %s (%s)', (self.translation.caption, self.copyright, self.licence.code)
+
     def determine_file_type(self, name):
         for type_key, type_name, type_test in self.filetypes:
             if type_test(name):
